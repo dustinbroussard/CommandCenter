@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
-  "description": "A command managing thing.",
+  "description": "Save, organize, and reuse frequently used command lines.",
   "icons": [
     {
       "src": "icons/icon-192.png",
@@ -19,4 +19,3 @@
     }
   ]
 }
-

@@ -10,7 +10,7 @@
     <meta name="application-name" content="CommandCenter">
     <meta name="apple-mobile-web-app-title" content="CommandCenter">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="description" content="AI Command Management System">
+    <meta name="description" content="Command management system with optional AI recommendations">
     <meta name="msapplication-TileColor" content="#111827">
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
     <title>CommandCenter</title>
@@ -210,8 +210,8 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="enhancement-prompt">Recommendation Prompt</label>
-                        <textarea id="enhancement-prompt" rows="5" placeholder="Enter system prompt for recommendation..."></textarea>
+                        <label for="enhancement-prompt">Recommendation Instructions</label>
+                        <textarea id="enhancement-prompt" rows="5" placeholder="Enter AI instructions for command recommendations..."></textarea>
                     </div>
                     <div class="form-actions">
                         <button type="submit" id="save-ai-settings" class="action-btn primary">Save Settings</button>
@@ -221,7 +221,7 @@
         </div>
     </div>
 
-    <!-- AI Prompt Modal -->
+    <!-- AI Command Modal -->
     <div id="ai-assistant-modal" class="modal">
         <div class="modal-overlay"></div>
         <div class="modal-content">
@@ -231,7 +231,7 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="ai-prompt-input">Your prompt or request</label>
+                    <label for="ai-prompt-input">Your command request</label>
                     <textarea id="ai-prompt-input" rows="6" placeholder="Describe the command you want to create or fix..."></textarea>
                 </div>
                 <div class="form-group">
@@ -308,7 +308,7 @@
         </div>
     </main>
     
-    <!-- Prompt Detail Modal -->
+    <!-- Command Detail Modal -->
     <div id="prompt-detail-modal" class="modal">
         <div class="modal-overlay"></div>
         <div class="modal-content">
@@ -328,7 +328,7 @@
         </div>
     </div>
 
-    <!-- New/Edit Prompt Modal -->
+    <!-- New/Edit Command Modal -->
     <div id="new-edit-prompt-modal" class="modal">
         <div class="modal-overlay"></div>
         <div class="modal-content">
@@ -348,7 +348,7 @@
                     </div>
                     <div class="form-group">
                         <label for="prompt-tags">Tags (comma-separated)</label>
-                        <input type="text" id="prompt-tags" placeholder="e.g., writing, creative, story">
+                        <input type="text" id="prompt-tags" placeholder="e.g., docker, deployment, logs">
                     </div>
                     <div class="form-actions">
                         <button type="button" id="enhance-prompt-btn" class="action-btn" style="margin-right: auto;">

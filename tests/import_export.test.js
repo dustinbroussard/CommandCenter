@@ -33,17 +33,17 @@ test('imports legacy array and normalizes fields', () => {
         }
     ];
     const result = normalizeImportedData(legacy);
-    assert.strictEqual(result.prompts.length, 1);
+    assert.strictEqual(result.commands.length, 1);
 
-    const prompt = result.prompts[0];
-    assert.strictEqual(prompt.id, '1766148199942');
-    assert.strictEqual(prompt.title, '123');
-    assert.strictEqual(prompt.content, 'Hello   world\n\nand   more');
-    assert.strictEqual(prompt.preview, 'Hello world and more');
-    assert.ok(isIsoString(prompt.createdAt));
-    assert.strictEqual(prompt.lastUsed, null);
-    assert.strictEqual(prompt.useCount, 0);
-    assert.deepStrictEqual(prompt.tags, ['tag', '2']);
+    const command = result.commands[0];
+    assert.strictEqual(command.id, '1766148199942');
+    assert.strictEqual(command.title, '123');
+    assert.strictEqual(command.content, 'Hello   world\n\nand   more');
+    assert.strictEqual(command.preview, 'Hello world and more');
+    assert.ok(isIsoString(command.createdAt));
+    assert.strictEqual(command.lastUsed, null);
+    assert.strictEqual(command.useCount, 0);
+    assert.deepStrictEqual(command.tags, ['tag', '2']);
 });
 
 test('imports new v2 object and preserves settings', () => {
@@ -65,9 +65,27 @@ test('imports new v2 object and preserves settings', () => {
     };
 
     const result = normalizeImportedData(payload);
-    assert.strictEqual(result.prompts.length, 1);
+    assert.strictEqual(result.commands.length, 1);
     assert.deepStrictEqual(result.settings, { foo: 'bar' });
-    assert.strictEqual(result.prompts[0].id, 'abc');
+    assert.strictEqual(result.commands[0].id, 'abc');
+});
+
+test('imports new v3 object with commands key', () => {
+    const payload = {
+        type: 'commandcenter.export',
+        version: 3,
+        commands: [
+            {
+                id: 'abc',
+                title: 'Title',
+                content: 'Content',
+                tags: []
+            }
+        ]
+    };
+    const result = normalizeImportedData(payload);
+    assert.strictEqual(result.commands.length, 1);
+    assert.strictEqual(result.commands[0].id, 'abc');
 });
 
 test('merge/overwrite/replace behaviors', () => {
@@ -134,17 +152,19 @@ test('numeric ids become strings and missing ids generate strings', () => {
         { id: 9, title: 'T', content: 'C' },
         { title: 'No ID', content: 'C' }
     ]);
-    assert.strictEqual(result.prompts[0].id, '9');
-    assert.strictEqual(typeof result.prompts[1].id, 'string');
-    assert.ok(result.prompts[1].id.length > 0);
+    assert.strictEqual(result.commands[0].id, '9');
+    assert.strictEqual(typeof result.commands[1].id, 'string');
+    assert.ok(result.commands[1].id.length > 0);
 });
 
-test('exports as v2 bundle', () => {
+test('exports as v3 bundle with compatibility key', () => {
     const bundle = createExportBundle([
         { id: 1, title: 'T', content: 'C' }
     ]);
     assert.strictEqual(bundle.type, 'commandcenter.export');
-    assert.strictEqual(bundle.version, 2);
+    assert.strictEqual(bundle.version, 3);
+    assert.strictEqual(bundle.commands.length, 1);
+    assert.strictEqual(bundle.commands[0].id, '1');
     assert.strictEqual(bundle.prompts.length, 1);
     assert.strictEqual(bundle.prompts[0].id, '1');
 });

@@ -1,6 +1,6 @@
 (function (root) {
     const EXPORT_TYPE = 'commandcenter.export';
-    const EXPORT_VERSION = 2;
+    const EXPORT_VERSION = 3;
 
     function getRandomUUID() {
         if (root.crypto && typeof root.crypto.randomUUID === 'function') {
@@ -14,7 +14,7 @@
         } catch (err) {
             // ignore - best effort fallback below
         }
-        return `pf_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+        return `cc_${Date.now()}_${Math.random().toString(16).slice(2)}`;
     }
 
     function normalizeDateToIso(value, fallbackIso) {
@@ -39,7 +39,7 @@
         return collapsed.slice(0, 140);
     }
 
-    function normalizePrompt(raw) {
+    function normalizeCommand(raw) {
         const idRaw = raw && raw.id;
         let id = '';
         if (idRaw === null || idRaw === undefined || idRaw === '') {
@@ -85,52 +85,63 @@
 
     function normalizeImportedData(json) {
         if (Array.isArray(json)) {
-            return { prompts: json.map(normalizePrompt) };
+            const commands = json.map(normalizeCommand);
+            return { commands, prompts: commands };
         }
         if (!json || typeof json !== 'object') {
             throw new Error('Invalid file format');
         }
-        if (json.type !== EXPORT_TYPE || json.version !== EXPORT_VERSION || !Array.isArray(json.prompts)) {
+        if (json.type !== EXPORT_TYPE) {
             throw new Error('Invalid file format');
         }
+        const isSupportedVersion = json.version === 2 || json.version === 3;
+        const rawCommands = Array.isArray(json.commands) ? json.commands : json.prompts;
+        if (!isSupportedVersion || !Array.isArray(rawCommands)) {
+            throw new Error('Invalid file format');
+        }
+        const commands = rawCommands.map(normalizeCommand);
         return {
-            prompts: json.prompts.map(normalizePrompt),
+            commands,
+            prompts: commands,
             settings: json.settings
         };
     }
 
-    function applyImport(existingPrompts, incomingPrompts, mode) {
+    function applyImport(existingCommands, incomingCommands, mode) {
         const normalizedMode = mode || 'replace';
         if (normalizedMode === 'replace') {
-            return incomingPrompts.slice();
+            return incomingCommands.slice();
         }
 
-        const next = existingPrompts.slice();
+        const next = existingCommands.slice();
         const indexById = new Map();
-        next.forEach((prompt, index) => {
-            indexById.set(prompt.id, index);
+        next.forEach((command, index) => {
+            indexById.set(command.id, index);
         });
 
-        incomingPrompts.forEach(prompt => {
-            const existingIndex = indexById.get(prompt.id);
+        incomingCommands.forEach(command => {
+            const existingIndex = indexById.get(command.id);
             if (existingIndex === undefined) {
-                indexById.set(prompt.id, next.length);
-                next.push(prompt);
+                indexById.set(command.id, next.length);
+                next.push(command);
                 return;
             }
             if (normalizedMode === 'overwrite') {
-                next[existingIndex] = prompt;
+                next[existingIndex] = command;
             }
         });
 
         return next;
     }
 
-    function createExportBundle(prompts, settings) {
+    function createExportBundle(commands, settings) {
+        const normalizedCommands = (commands || []).map(normalizeCommand);
         const bundle = {
             type: EXPORT_TYPE,
             version: EXPORT_VERSION,
-            prompts: (prompts || []).map(normalizePrompt)
+            commands: normalizedCommands,
+            // Keep legacy key for backward compatibility with old importers.
+            prompts: normalizedCommands
         };
         if (settings !== undefined) {
             bundle.settings = settings;
@@ -142,7 +153,8 @@
         EXPORT_TYPE,
         EXPORT_VERSION,
         normalizeImportedData,
-        normalizePrompt,
+        normalizeCommand,
+        normalizePrompt: normalizeCommand,
         applyImport,
         createExportBundle
     };

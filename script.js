@@ -1,10 +1,10 @@
 /**
- * CommandCenter - Modern Prompt Management System
+ * CommandCenter - Modern Command Management System
  * Enhanced and Combined Version
  *
  * This script manages the full functionality of the CommandCenter single-page application.
  * It handles local storage for persistence, UI rendering, event handling, and all
- * prompt-related operations (create, read, update, delete).
+ * command-related operations (create, read, update, delete).
  */
 
 let deferredPrompt;
@@ -201,11 +201,16 @@ class CommandCenterApp {
      * Data Management (Local Storage)
      */
     loadPrompts() {
-        const storedPrompts = localStorage.getItem('commandCenterPrompts');
-        if (storedPrompts) {
-            const parsed = JSON.parse(storedPrompts);
-            const normalized = CommandCenterImportExport.normalizeImportedData(parsed).prompts;
-            this.prompts = normalized;
+        const storedCommands = localStorage.getItem('commandCenterCommands');
+        const legacyPrompts = localStorage.getItem('commandCenterPrompts');
+        const storedData = storedCommands || legacyPrompts;
+        if (storedData) {
+            const parsed = JSON.parse(storedData);
+            const normalized = CommandCenterImportExport.normalizeImportedData(parsed);
+            this.prompts = normalized.commands || normalized.prompts || [];
+            if (!storedCommands) {
+                this.savePrompts();
+            }
         } else {
             // Load sample data if local storage is empty
             this.prompts = this.loadSampleData();
@@ -214,7 +219,7 @@ class CommandCenterApp {
     }
 
     savePrompts() {
-        localStorage.setItem('commandCenterPrompts', JSON.stringify(this.prompts));
+        localStorage.setItem('commandCenterCommands', JSON.stringify(this.prompts));
     }
 
     loadSampleData() {
@@ -502,7 +507,7 @@ class CommandCenterApp {
     showEditPromptModal(id) {
         const promptToEdit = this.prompts.find(p => p.id === id);
         if (!promptToEdit) {
-            this.showNotification('Prompt not found!', 'error');
+            this.showNotification('Command not found!', 'error');
             return;
         }
 
@@ -512,7 +517,7 @@ class CommandCenterApp {
             this.dom.undoEnhanceBtn.disabled = true;
         }
         this.editingPromptId = id;
-        this.dom.newEditModalTitle.textContent = `Edit Prompt: ${promptToEdit.title}`;
+        this.dom.newEditModalTitle.textContent = `Edit Command: ${promptToEdit.title}`;
         this.dom.promptTitleInput.value = promptToEdit.title;
         this.dom.promptContentInput.value = promptToEdit.content;
         this.dom.promptTagsInput.value = promptToEdit.tags.join(', ');
@@ -542,7 +547,7 @@ class CommandCenterApp {
                     content,
                     tags
                 };
-                this.showNotification('Prompt updated successfully!', 'success');
+                this.showNotification('Command updated successfully!', 'success');
             }
         } else {
             // Create new prompt
@@ -557,7 +562,7 @@ class CommandCenterApp {
                 useCount: 0
             };
             this.prompts.unshift(newPrompt);
-            this.showNotification('Prompt created successfully!', 'success');
+            this.showNotification('Command created successfully!', 'success');
         }
 
         this.savePrompts();
@@ -567,7 +572,7 @@ class CommandCenterApp {
     }
 
     deletePrompt(id) {
-        if (!confirm('Are you sure you want to delete this prompt?')) return;
+        if (!confirm('Are you sure you want to delete this command?')) return;
         this.prompts = this.prompts.filter(p => p.id !== id);
         if (this.currentPromptId === id) {
             this.currentPromptId = null;
@@ -576,7 +581,7 @@ class CommandCenterApp {
         this.renderTagDropdown();
         this.handleFilterAndSort();
         this.closeModal(this.dom.promptDetailModal);
-        this.showNotification('Prompt deleted successfully!', 'success');
+        this.showNotification('Command deleted successfully!', 'success');
     }
 
     filterPrompts() {
@@ -636,7 +641,7 @@ class CommandCenterApp {
                 <div class="prompt-tags">${tagsHtml}</div>
                 <div class="prompt-preview">${this.escapeHtml(this.createPreview(prompt.content))}</div>
                 <div class="prompt-actions">
-                    <button class="action-btn primary use-prompt-btn"><i class="fas fa-copy"></i> Use</button>
+                    <button class="action-btn primary use-prompt-btn"><i class="fas fa-copy"></i> Copy</button>
                     <button class="action-btn secondary export-prompt-btn"><i class="fas fa-file-export"></i> Export</button>
                     <button class="action-btn secondary edit-prompt-btn"><i class="fas fa-edit"></i> Edit</button>
                 </div>
@@ -688,7 +693,7 @@ class CommandCenterApp {
                 this.savePrompts();
                 this.renderPrompts();
             }).catch(err => {
-                this.showNotification('Failed to copy prompt.', 'error');
+                this.showNotification('Failed to copy command.', 'error');
             });
         }
         this.closeModal(this.dom.promptDetailModal);
@@ -747,7 +752,7 @@ class CommandCenterApp {
 
         const userInput = this.dom.aiPromptInput?.value.trim() || '';
         if (!userInput) {
-            this.showNotification('Enter a prompt or request to generate', 'error');
+            this.showNotification('Enter a command request to generate', 'error');
             return;
         }
 
@@ -829,7 +834,7 @@ class CommandCenterApp {
             this.dom.promptContentInput.value = generatedContent;
         }
         this.closeModal(this.dom.aiAssistantModal);
-        this.showNotification('AI prompt accepted. Review and save when ready.', 'success');
+        this.showNotification('AI command accepted. Review and save when ready.', 'success');
     }
 
     rejectAiPrompt() {
@@ -869,19 +874,19 @@ class CommandCenterApp {
         const prompt = this.prompts.find(p => p.id === id);
         if (!prompt) return;
         const exportData = CommandCenterImportExport.createExportBundle([prompt]);
-        const filename = this.buildPromptFilename(prompt.title);
+        const filename = this.buildCommandFilename(prompt.title);
         this.downloadExportData(exportData, filename);
-        this.showNotification('Prompt exported successfully!', 'success');
+        this.showNotification('Command exported successfully!', 'success');
     }
 
-    buildPromptFilename(title) {
-        const base = String(title || 'prompt')
+    buildCommandFilename(title) {
+        const base = String(title || 'command')
             .trim()
             .replace(/[\\/:*?"<>|]+/g, '')
             .replace(/\s+/g, ' ')
             .slice(0, 80)
             .trim();
-        return `${base || 'prompt'}.json`;
+        return `${base || 'command'}.json`;
     }
 
     downloadExportData(exportData, filename) {
@@ -919,8 +924,9 @@ class CommandCenterApp {
             try {
                 const imported = JSON.parse(event.target.result);
                 const normalized = CommandCenterImportExport.normalizeImportedData(imported);
-                const summary = this.computeImportSummary(this.prompts, normalized.prompts, mode);
-                this.prompts = CommandCenterImportExport.applyImport(this.prompts, normalized.prompts, mode);
+                const importedCommands = normalized.commands || normalized.prompts || [];
+                const summary = this.computeImportSummary(this.prompts, importedCommands, mode);
+                this.prompts = CommandCenterImportExport.applyImport(this.prompts, importedCommands, mode);
                 if (this.currentPromptId && !this.prompts.some(p => p.id === this.currentPromptId)) {
                     this.currentPromptId = null;
                 }
@@ -934,11 +940,11 @@ class CommandCenterApp {
                 this.renderTagDropdown();
                 this.handleFilterAndSort();
                 this.updateImportSummary(summary);
-                this.showNotification('Prompts imported successfully!', 'success');
+                this.showNotification('Commands imported successfully!', 'success');
             } catch (error) {
                 console.error('Import failed:', error);
                 this.updateImportSummary({ error: error.message });
-                this.showNotification(`Failed to import prompts: ${error.message}`, 'error');
+                this.showNotification(`Failed to import commands: ${error.message}`, 'error');
             }
         };
 
@@ -993,7 +999,7 @@ class CommandCenterApp {
         const mode = this.dom.importBehaviorSelect.value;
         const messages = {
             merge: 'Keeps your current commands and adds only new ones.',
-            overwrite: 'Replaces prompts with matching IDs.',
+            overwrite: 'Replaces commands with matching IDs.',
             replaceAll: 'Deletes everything first. Use with caution.'
         };
         this.dom.importBehaviorHelp.textContent = messages[mode] || '';
@@ -1282,7 +1288,7 @@ class CommandCenterApp {
                         {
                             role: "system",
                             content: this.aiSettings.enhancementPrompt + "\n\n" + currentContent +
-                                "\n\nIMPORTANT: Only return the improved prompt text exactly as it should be used."
+                                "\n\nIMPORTANT: Only return the improved command text exactly as it should be used."
                         }
                     ]
                 })
@@ -1318,7 +1324,7 @@ class CommandCenterApp {
         if (this.dom.undoEnhanceBtn) {
             this.dom.undoEnhanceBtn.disabled = true;
         }
-        this.showNotification('Reverted to the previous prompt.', 'success');
+        this.showNotification('Reverted to the previous command.', 'success');
     }
 
     showNotification(message, type = 'success', duration = 3000) {

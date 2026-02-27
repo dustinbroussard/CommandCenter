@@ -10,7 +10,7 @@ CommandCenter is a command management PWA for creating, organizing, and fixing c
 - Import/export commands as JSON (with optional settings)
 - AI recommendation and fixing via OpenRouter (optional)
 - Theme toggle with system preference fallback
-- PWA offline support and install prompt
+- PWA offline support and install flow
 
 ## Security
 

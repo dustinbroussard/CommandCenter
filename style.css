@@ -1,57 +1,70 @@
-/* AMOLED Dark Theme Variables */
+/* AMOLED Dark Theme Variables – Termux Inspired */
 [data-theme="default-dark"] {
     --bg-primary: #000000;
     --bg-secondary: #0a0a0a;
     --bg-tertiary: #111111;
-    --bg-card: #1a1a1a;
-    --bg-hover: #222222;
-    --bg-active: #2a2a2a;
-    --text-primary: #ffffff;
-    --text-secondary: #cccccc;
-    --text-muted: #888888;
-    --text-accent: #f0f0f0;
-    --accent-primary: #ffffff;
-    --accent-secondary: #e0e0e0;
-    --border: #333333;
-    --border-light: #2a2a2a;
-    --shadow: rgba(255, 255, 255, 0.05);
-    --shadow-medium: rgba(255, 255, 255, 0.1);
-    --shadow-heavy: rgba(255, 255, 255, 0.15);
-    --success: #00ff88;
-    --warning: #ffaa00;
-    --danger: #ff4444;
-    --danger-hover: #ff6666;
-    --info: #00aaff;
-    --gradient-primary: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
-    --gradient-card: linear-gradient(135deg, #111111 0%, #1a1a1a 100%);
+    --bg-card: #121212;
+    --bg-hover: #1a1a1a;
+    --bg-active: #222222;
+
+    --text-primary: #eaffea;
+    --text-secondary: #b6ffb6;
+    --text-muted: #66aa66;
+    --text-accent: #00ff5f;
+
+    /* Termux-style phosphor green */
+    --accent-primary: #00ff5f;
+    --accent-secondary: #00cc4a;
+
+    --border: #133313;
+    --border-light: #0f2a0f;
+
+    --shadow: rgba(0, 255, 95, 0.05);
+    --shadow-medium: rgba(0, 255, 95, 0.1);
+    --shadow-heavy: rgba(0, 255, 95, 0.2);
+
+    --success: #00ff5f;
+    --warning: #ffcc00;
+    --danger: #ff3b3b;
+    --danger-hover: #ff5c5c;
+    --info: #00bfff;
+
+    --gradient-primary: linear-gradient(135deg, #000000 0%, #0f1f0f 100%);
+    --gradient-card: linear-gradient(135deg, #0a140a 0%, #121212 100%);
 }
 
-/* Default Light Theme Variables */
+/* Default Light Theme Variables – Terminal Accent */
 [data-theme="default-light"] {
     --bg-primary: #ffffff;
     --bg-secondary: #f5f5f5;
-    --bg-tertiary: #e0e0e0;
-    --bg-card: #f5f5f5;
-    --bg-hover: #d0d0d0;
-    --bg-active: #c0c0c0;
+    --bg-tertiary: #eaeaea;
+    --bg-card: #f7f7f7;
+    --bg-hover: #e0e0e0;
+    --bg-active: #d5d5d5;
+
     --text-primary: #000000;
-    --text-secondary: #333333;
+    --text-secondary: #1a1a1a;
     --text-muted: #666666;
-    --text-accent: #111111;
-    --accent-primary: #000000;
-    --accent-secondary: #1a1a1a;
+    --text-accent: #007f2f;
+
+    --accent-primary: #008f3a;
+    --accent-secondary: #006b2c;
+
     --border: #cccccc;
-    --border-light: #d0d0d0;
-    --shadow: rgba(0, 0, 0, 0.05);
-    --shadow-medium: rgba(0, 0, 0, 0.1);
-    --shadow-heavy: rgba(0, 0, 0, 0.15);
-    --success: #008000;
+    --border-light: #dddddd;
+
+    --shadow: rgba(0, 128, 58, 0.05);
+    --shadow-medium: rgba(0, 128, 58, 0.1);
+    --shadow-heavy: rgba(0, 128, 58, 0.15);
+
+    --success: #008f3a;
     --warning: #cc9900;
     --danger: #cc0000;
     --danger-hover: #e05252;
-    --info: #006666;
-    --gradient-primary: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
-    --gradient-card: linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%);
+    --info: #0077aa;
+
+    --gradient-primary: linear-gradient(135deg, #ffffff 0%, #f0f5f0 100%);
+    --gradient-card: linear-gradient(135deg, #e8f5ea 0%, #ffffff 100%);
 }
 
 /* Reset & Base */
@@ -399,7 +412,7 @@ body {
 
 .prompt-meta {
     font-size: 0.8rem;
-    color: var(--text-muted);
+    color: var(--info);
     margin-top: 4px;
 }
 
