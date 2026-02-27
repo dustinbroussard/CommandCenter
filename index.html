@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Theme and PWA -->
+    <meta name="theme-color" content="#000000">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="CommandCenter">
+    <meta name="apple-mobile-web-app-title" content="CommandCenter">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="AI Command Management System">
+    <meta name="msapplication-TileColor" content="#111827">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <title>CommandCenter</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script>
+        (() => {
+            const storageKey = 'theme';
+            const root = document.documentElement;
+            let theme = null;
+
+            try {
+                theme = localStorage.getItem(storageKey);
+            } catch (err) {
+                theme = null;
+            }
+
+            if (!theme) {
+                const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                theme = prefersDark ? 'default-dark' : 'default-light';
+            }
+
+            root.dataset.theme = theme;
+
+            const meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) {
+                meta.setAttribute('content', theme === 'default-light' ? '#ffffff' : '#000000');
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Install Modal Styles */
+        .install-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(4px);
+        }
+
+        .install-modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 400px;
+            text-align: center;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .install-modal-content h3 {
+            margin-bottom: 16px;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+        }
+
+        .install-modal-content p {
+            margin-bottom: 24px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .install-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="header-title">
+                <i class="fas fa-terminal header-icon"></i>
+                <h1>CommandCenter</h1>
+            </div>
+            <div class="header-actions">
+                <button class="header-btn header-btn-text" id="ai-assistant-btn" title="AI Command Lab">
+                    <i class="fas fa-wand-magic-sparkles"></i>
+                </button>
+                <button class="header-btn header-btn-text" id="import-export-btn" title="Import / Export">
+                    <i class="fas fa-file-import"></i>
+                </button>
+                <button class="header-btn" id="theme-toggle-btn" title="Toggle Theme">
+                    <i class="fas fa-sun"></i>
+                </button>
+                <button class="header-btn" id="settings-btn" title="Settings">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Import / Export Modal -->
+    <div id="import-export-modal" class="modal import-export-modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content import-export-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Import / Export</h2>
+                <button class="close-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="import-export-tabs" role="tablist" aria-label="Import and export tabs">
+                    <button class="tab-btn active" data-tab="export" role="tab" aria-selected="true">Export</button>
+                    <button class="tab-btn" data-tab="import" role="tab" aria-selected="false">Import</button>
+                </div>
+
+                <div class="import-export-section active" data-section="export">
+                    <div class="form-group">
+                        <label class="section-title">Export Options</label>
+                        <div class="export-actions">
+                            <button id="export-all-btn" class="action-btn primary">Export All Commands</button>
+                        </div>
+                        <label class="option-row">
+                            <input type="checkbox" id="export-include-settings">
+                            <span>Include settings</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="import-export-section" data-section="import">
+                    <div class="form-group">
+                        <label class="section-title">Import Options</label>
+                        <div class="file-input-row">
+                            <button id="import-file-btn" class="action-btn secondary" type="button">Choose file</button>
+                            <span id="import-file-name" class="file-name">No file selected</span>
+                            <input type="file" id="import-file-input" class="visually-hidden" accept=".json,application/json">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="section-title" for="import-behavior-select">Import behavior</label>
+                        <select id="import-behavior-select" class="sort-select">
+                            <option value="merge" selected>Merge (add new, keep existing)</option>
+                            <option value="overwrite">Overwrite duplicates (replace existing)</option>
+                            <option value="replaceAll">Replace all (delete all then import)</option>
+                        </select>
+                        <p id="import-behavior-help" class="helper-text">Keeps your current commands and adds only new ones.</p>
+                    </div>
+                    <label class="option-row">
+                        <input type="checkbox" id="import-include-settings" checked>
+                        <span>Import settings if present</span>
+                    </label>
+                    <div class="import-actions">
+                        <button id="import-confirm-btn" class="action-btn primary">Import</button>
+                    </div>
+                    <div id="import-summary" class="import-summary is-hidden" aria-live="polite"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Settings Modal -->
+    <div id="ai-settings-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">AI Recommendation Settings</h2>
+                <button class="close-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="ai-settings-form">
+                    <div class="form-group">
+                        <label for="openrouter-api-key">OpenRouter API Key</label>
+                        <input type="password" id="openrouter-api-key" placeholder="sk-or-..." required>
+                        <small style="color: var(--text-muted); display: block; margin-top: 4px;">
+                            Get your free API key from <a href="https://openrouter.ai" target="_blank" style="color: var(--accent-primary);">openrouter.ai</a>
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label for="ai-model-select">AI Model</label>
+                        <select id="ai-model-select" class="form-select" required>
+                            <option value="">Select a model</option>
+                        </select>
+                        <div id="model-loading-spinner" style="display: none; margin-top: 8px; color: var(--text-muted);">
+                            <i class="fas fa-spinner fa-spin"></i> Loading models...
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="enhancement-prompt">Recommendation Prompt</label>
+                        <textarea id="enhancement-prompt" rows="5" placeholder="Enter system prompt for recommendation..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" id="save-ai-settings" class="action-btn primary">Save Settings</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Prompt Modal -->
+    <div id="ai-assistant-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">AI Command Lab</h2>
+                <button class="close-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="ai-prompt-input">Your prompt or request</label>
+                    <textarea id="ai-prompt-input" rows="6" placeholder="Describe the command you want to create or fix..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="ai-prompt-output">AI Result</label>
+                    <textarea id="ai-prompt-output" class="ai-output" rows="8" readonly></textarea>
+                    <div id="ai-prompt-status" class="helper-text" aria-live="polite"></div>
+                </div>
+                <div class="form-actions ai-modal-actions">
+                    <button type="button" id="ai-prompt-generate" class="action-btn secondary ai-generate-btn">
+                        <i class="fas fa-wand-magic-sparkles"></i>
+                        Generate
+                    </button>
+                    <button type="button" id="ai-prompt-accept" class="action-btn primary" disabled>
+                        <i class="fas fa-save"></i>
+                        Accept
+                    </button>
+                    <button type="button" id="ai-prompt-redo" class="action-btn secondary" disabled>
+                        <i class="fas fa-rotate-right"></i>
+                        Redo
+                    </button>
+                    <button type="button" id="ai-prompt-reject" class="action-btn danger" disabled>
+                        <i class="fas fa-times"></i>
+                        Reject
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main class="main-container">
+        <section class="new-prompt-section">
+            <button class="new-prompt-btn" id="new-prompt-btn">
+                <i class="fas fa-plus"></i>
+                New Command
+            </button>
+        </section>
+
+        <section class="controls-section">
+            <div class="search-container">
+                <input type="text" id="search-input" class="search-input" placeholder="Search commands...">
+                <i class="fas fa-search search-icon"></i>
+                <button type="button" id="search-clear-btn" class="search-clear-btn" aria-label="Clear search" title="Clear search">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="filters-container">
+                <div class="controlsRow">
+                    <div class="controlGroup">
+                        <label for="tag-select" class="sort-label">Tag:</label>
+                        <select id="tag-select" class="sort-select">
+                            <option value="all">All tags</option>
+                        </select>
+                    </div>
+                    <div class="controlGroup">
+                        <label for="sort-select" class="sort-label">Sort by:</label>
+                        <select id="sort-select" class="sort-select">
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="alphabetical">Alphabetical</option>
+                            <option value="most-used">Most Used</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="prompts-grid" id="prompts-grid">
+        </section>
+        
+        <div id="empty-state" class="empty-state" style="display: none;">
+            <i class="fas fa-box-open empty-icon"></i>
+            <h2 class="empty-title">No Commands Found</h2>
+            <p class="empty-text">It looks like there are no commands matching your criteria. Try adjusting your search or filters.</p>
+        </div>
+    </main>
+    
+    <!-- Prompt Detail Modal -->
+    <div id="prompt-detail-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="prompt-detail-title" class="modal-title">Command Details</h2>
+                <button class="close-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-prompt-content" id="modal-prompt-content"></div>
+                <div class="modal-prompt-tags" id="modal-prompt-tags"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="modal-use-prompt-btn" class="action-btn primary"><i class="fas fa-copy"></i> Copy Command</button>
+                <button id="modal-edit-prompt-btn" class="action-btn secondary"><i class="fas fa-edit"></i> Edit</button>
+                <button id="modal-delete-prompt-btn" class="action-btn danger"><i class="fas fa-trash-alt"></i> Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New/Edit Prompt Modal -->
+    <div id="new-edit-prompt-modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="new-edit-modal-title" class="modal-title">New Command</h2>
+                <button class="close-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="prompt-form">
+                    <div class="form-group">
+                        <label for="prompt-title">Title</label>
+                        <input type="text" id="prompt-title" placeholder="e.g., Start Node.js server" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="prompt-content">Command</label>
+                        <textarea id="prompt-content" placeholder="e.g., node server.js" rows="10" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="prompt-tags">Tags (comma-separated)</label>
+                        <input type="text" id="prompt-tags" placeholder="e.g., writing, creative, story">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" id="enhance-prompt-btn" class="action-btn" style="margin-right: auto;">
+                            <i class="fas fa-magic"></i>
+                        </button>
+                        <button type="button" id="undo-enhance-btn" class="action-btn secondary" disabled>
+                            <i class="fas fa-undo"></i>
+                        </button>
+                        <button type="submit" id="save-prompt-btn" class="action-btn primary"><i class="fas fa-save"></i></button>
+                        <button type="button" id="cancel-prompt-btn" class="action-btn secondary"><i class="fas fa-times"></i></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div id="notification-container" class="notification-container"></div>
+
+    <script src="importExport.js"></script>
+    <script src="script.js"></script>
+    <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(reg => console.log('Service worker registered:', reg))
+        .catch(err => console.error('Service worker error:', err));
+    });
+  }
+</script>
+</body>
+</html>
