@@ -8,13 +8,13 @@
     --bg-active: #222222;
 
     --text-primary: #eaffea;
-    --text-secondary: #b6ffb6;
-    --text-muted: #66aa66;
+    --text-secondary: #cccccc;
+    --text-muted:  #888888;
     --text-accent: #00ff5f;
 
     /* Termux-style phosphor green */
-    --accent-primary: #00ff5f;
-    --accent-secondary: #00cc4a;
+    --accent-primary: #009400;
+    --accent-secondary: #007000;
 
     --border: #133313;
     --border-light: #0f2a0f;
@@ -24,10 +24,10 @@
     --shadow-heavy: rgba(0, 255, 95, 0.2);
 
     --success: #00ff5f;
-    --warning: #ffcc00;
-    --danger: #ff3b3b;
+    --warning: #FF0000;
+    --danger: #FF0000;
     --danger-hover: #ff5c5c;
-    --info: #00bfff;
+    --info: #0041c5;
 
     --gradient-primary: linear-gradient(135deg, #000000 0%, #0f1f0f 100%);
     --gradient-card: linear-gradient(135deg, #0a140a 0%, #121212 100%);
@@ -465,7 +465,7 @@ body {
 
 .action-btn.primary {
     background: var(--accent-primary);
-    color: var(--bg-primary);
+    color: var(--text-primary);
 }
 
 .action-btn.primary:hover {
